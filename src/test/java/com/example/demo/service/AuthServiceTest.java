@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RefreshTokenRequest;
 import com.example.demo.dto.TokenResponse;
+import com.example.demo.dto.UpdateFcmTokenRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.entity.User;
 import com.example.demo.entity.UserStatusEnum;
@@ -131,6 +132,30 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.me("Bearer abc"))
                 .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
+    void updateFcmTokenSavesTokenForCurrentUser() {
+        User current = user(UserStatusEnum.ACTIVE);
+        when(jwtService.parseAccessToken("abc")).thenReturn(1);
+        when(userRepository.findById(1)).thenReturn(Optional.of(current));
+        when(userRepository.saveAndFlush(current)).thenReturn(current);
+
+        UserResponse response = authService.updateFcmToken("Bearer abc", new UpdateFcmTokenRequest("token-1"));
+
+        assertThat(current.getFcmToken()).isEqualTo("token-1");
+        assertThat(response.email()).isEqualTo("an@example.com");
+    }
+
+    @Test
+    void updateFcmTokenRejectsInactiveUser() {
+        User current = user(UserStatusEnum.INACTIVE);
+        when(jwtService.parseAccessToken("abc")).thenReturn(1);
+        when(userRepository.findById(1)).thenReturn(Optional.of(current));
+
+        assertThatThrownBy(() -> authService.updateFcmToken("Bearer abc", new UpdateFcmTokenRequest("token-1")))
+                .isInstanceOf(UnauthorizedException.class);
+        assertThat(current.getFcmToken()).isNull();
     }
 
     @Test

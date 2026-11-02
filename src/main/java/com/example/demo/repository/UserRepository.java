@@ -45,6 +45,14 @@ public class UserRepository {
                 .getSingleResult();
     }
 
+    // Chỉ xóa khi token vẫn khớp, để không xóa nhầm token mới mà client vừa đăng ký
+    public void clearFcmToken(Integer id, String fcmToken) {
+        entityManager.createQuery("UPDATE User u SET u.fcmToken = NULL WHERE u.id = :id AND u.fcmToken = :fcmToken")
+                .setParameter("id", id)
+                .setParameter("fcmToken", fcmToken)
+                .executeUpdate();
+    }
+
     // User mới (chưa có id) thì persist, User đã có id thì merge
     public User save(User user) {
         if (user.getId() == null) {

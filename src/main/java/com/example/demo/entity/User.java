@@ -26,6 +26,9 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 20)
     private UserStatusEnum status = UserStatusEnum.ACTIVE;
 
+    @Column(length = 512)
+    private String fcmToken;
+
     public String getFullName() {
         return fullName;
     }
@@ -64,5 +67,13 @@ public class User extends BaseEntity {
 
     public void setStatus(UserStatusEnum status) {
         this.status = status;
+    }
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 }

@@ -81,6 +81,22 @@ public class UserService {
         userRepository.delete(getUser(id));
     }
 
+    /** Lấy FCM token của user, báo lỗi 400 nếu user chưa đăng ký token */
+    @Transactional(readOnly = true)
+    public String getFcmToken(Integer id) {
+        String fcmToken = getUser(id).getFcmToken();
+        if (fcmToken == null) {
+            throw new BadRequestException("User chưa đăng ký FCM token");
+        }
+        return fcmToken;
+    }
+
+    /** Xóa FCM token đã hết hiệu lực của user */
+    @Transactional
+    public void clearFcmToken(Integer id, String fcmToken) {
+        userRepository.clearFcmToken(id, fcmToken);
+    }
+
     /** Tìm user theo id: báo lỗi 400 nếu id không hợp lệ, 404 nếu không tồn tại */
     private User getUser(Integer id) {
         if (id <= 0) {

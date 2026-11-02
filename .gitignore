@@ -37,4 +37,5 @@ build/
 
 ### Biến môi trường (chứa mật khẩu) ###
 .env
+firebase-service-account*.json
 CLAUDE.md

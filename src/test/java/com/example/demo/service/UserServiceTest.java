@@ -126,6 +126,52 @@ class UserServiceTest {
     }
 
     @Test
+    void getFcmTokenReturnsStoredToken() {
+        User existing = new User();
+        existing.setFcmToken("token-1");
+        when(userRepository.findById(1)).thenReturn(Optional.of(existing));
+
+        assertThat(userService.getFcmToken(1)).isEqualTo("token-1");
+    }
+
+    @Test
+    void getFcmTokenRejectsUserWithoutToken() {
+        when(userRepository.findById(1)).thenReturn(Optional.of(new User()));
+
+        assertThatThrownBy(() -> userService.getFcmToken(1))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("User chưa đăng ký FCM token");
+    }
+
+    @Test
+    void getFcmTokenThrowsWhenUserMissing() {
+        when(userRepository.findById(1)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getFcmToken(1))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void clearFcmTokenOnlyClearsMatchingToken() {
+        userService.clearFcmToken(1, "token-1");
+
+        verify(userRepository).clearFcmToken(1, "token-1");
+    }
+
+    @Test
+    void updateDoesNotTouchFcmToken() {
+        User existing = new User();
+        existing.setFcmToken("token-1");
+        when(userRepository.findById(1)).thenReturn(Optional.of(existing));
+        when(userRepository.existsByEmailAndIdNot("an@example.com", 1)).thenReturn(false);
+        when(userRepository.saveAndFlush(existing)).thenReturn(existing);
+
+        userService.update(1, UPDATE_REQUEST);
+
+        assertThat(existing.getFcmToken()).isEqualTo("token-1");
+    }
+
+    @Test
     void deleteRemovesExistingUser() {
         User existing = new User();
         when(userRepository.findById(1)).thenReturn(Optional.of(existing));

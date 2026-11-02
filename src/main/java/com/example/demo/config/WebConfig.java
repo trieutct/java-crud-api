@@ -14,10 +14,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    private final ApiLoggingInterceptor apiLoggingInterceptor;
     private final AuthInterceptor authInterceptor;
     private final String uploadDir;
 
-    public WebConfig(AuthInterceptor authInterceptor, @Value("${upload.dir}") String uploadDir) {
+    public WebConfig(
+            ApiLoggingInterceptor apiLoggingInterceptor,
+            AuthInterceptor authInterceptor,
+            @Value("${upload.dir}") String uploadDir) {
+        this.apiLoggingInterceptor = apiLoggingInterceptor;
         this.authInterceptor = authInterceptor;
         this.uploadDir = uploadDir;
     }
@@ -31,9 +36,11 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations(location.endsWith("/") ? location : location + "/");
     }
 
-    /** Kiểm tra xác thực cho các API có @RequireAuth */
+    /** Ghi log mọi API và kiểm tra xác thực cho các API có @RequireAuth */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // Đăng ký log trước để request bị AuthInterceptor từ chối vẫn được ghi log
+        registry.addInterceptor(apiLoggingInterceptor).addPathPatterns("/api/**");
         registry.addInterceptor(authInterceptor);
     }
 

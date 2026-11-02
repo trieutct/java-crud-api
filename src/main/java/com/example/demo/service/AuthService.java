@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RefreshTokenRequest;
 import com.example.demo.dto.TokenResponse;
+import com.example.demo.dto.UpdateFcmTokenRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.entity.User;
 import com.example.demo.entity.UserStatusEnum;
@@ -46,6 +47,15 @@ public class AuthService {
     @Transactional(readOnly = true)
     public UserResponse me(String authorization) {
         return UserResponse.from(getActiveUser(jwtService.parseAccessToken(extractBearerToken(authorization))));
+    }
+
+    /** Lưu FCM token cho user đang đăng nhập, báo lỗi 401 nếu token không hợp lệ hoặc user không còn hoạt động */
+    @Transactional
+    public UserResponse updateFcmToken(String authorization, UpdateFcmTokenRequest request) {
+        User user = getActiveUser(jwtService.parseAccessToken(extractBearerToken(authorization)));
+        user.setFcmToken(request.fcmToken());
+        // Flush ngay để updatedAt trong response là giá trị mới
+        return UserResponse.from(userRepository.saveAndFlush(user));
     }
 
     /** Xác thực header Authorization, báo lỗi 401 nếu token không hợp lệ, user đã bị xóa, hoặc user INACTIVE khi allowInactive là false */

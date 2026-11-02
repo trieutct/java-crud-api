@@ -1,15 +1,18 @@
 package com.example.demo.controller;
 
+import com.example.demo.config.RequireAuth;
 import com.example.demo.dto.ApiResponse;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RefreshTokenRequest;
 import com.example.demo.dto.TokenResponse;
+import com.example.demo.dto.UpdateFcmTokenRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,5 +45,14 @@ public class AuthController {
     public ApiResponse<UserResponse> me(
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {
         return ApiResponse.success(authService.me(authorization));
+    }
+
+    /** Lưu FCM token cho user đang đăng nhập */
+    @RequireAuth
+    @PutMapping("/me/fcm-token")
+    public ApiResponse<UserResponse> updateFcmToken(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @Valid @RequestBody UpdateFcmTokenRequest request) {
+        return ApiResponse.success(authService.updateFcmToken(authorization, request));
     }
 }
