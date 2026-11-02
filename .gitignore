@@ -34,3 +34,4 @@ build/
 
 ### Biến môi trường (chứa mật khẩu) ###
 .env
+CLAUDE.md
