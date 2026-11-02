@@ -32,6 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### Ảnh do người dùng upload ###
+/uploads/
+
 ### Biến môi trường (chứa mật khẩu) ###
 .env
 CLAUDE.md

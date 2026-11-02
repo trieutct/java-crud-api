@@ -15,6 +15,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @RestControllerAdvice
@@ -34,6 +36,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return toResponse(HttpStatus.BAD_REQUEST, "Dữ liệu bị trùng hoặc không hợp lệ");
     }
 
+    /** Request multipart bị hỏng là lỗi của client, không phải lỗi hệ thống */
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMultipart(MultipartException ex) {
+        return toResponse(HttpStatus.BAD_REQUEST, "Dữ liệu upload không hợp lệ");
+    }
+
     /** Lỗi không lường trước: ghi log đầy đủ nhưng không trả chi tiết nội bộ cho client */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception ex) {
@@ -50,6 +58,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .toList();
 
         ApiResponse<Void> body = ApiResponse.error(status.value(), "Dữ liệu không hợp lệ", errors);
+        return super.handleExceptionInternal(ex, body, headers, status, request);
+    }
+
+    /** File upload vượt giới hạn spring.servlet.multipart.*, trả về 413 */
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ApiResponse<Void> body = ApiResponse.error(status.value(), "File vượt quá dung lượng cho phép", List.of());
         return super.handleExceptionInternal(ex, body, headers, status, request);
     }
 
